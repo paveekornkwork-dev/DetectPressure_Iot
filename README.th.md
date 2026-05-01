@@ -1,162 +1,164 @@
-# 🩺 ระบบตรวจจับแรงกด (Pressure Monitoring System)
+<div align="center">
 
-> **ระบบ IoT สำหรับเฝ้าระวังแผลกดทับผู้ป่วยแบบ Real-time**
-> ESP32 + RFP-602 Sensor → Firebase → Web Dashboard + Telegram แจ้งเตือน
+# 🩺 PressureCare IoT
+### ระบบอัจฉริยะสำหรับเฝ้าระวังแผลกดทับผู้ป่วย
 
-🌐 [English Version](./README.md)
+*การตรวจจับแรงกดแบบ Real-time และระบบแจ้งเตือนอัจฉริยะ เพื่อยกระดับการดูแลสุขภาพ*
+
+[![](https://img.shields.io/badge/ESP32-DevKit_V1-003399?style=for-the-badge&logo=espressif&logoColor=white)](https://www.espressif.com/)
+[![](https://img.shields.io/badge/Firebase-Realtime_DB-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com/)
+[![](https://img.shields.io/badge/Telegram-Smart_Alerts-26A5E4?style=for-the-badge&logo=telegram&logoColor=white)](https://core.telegram.org/bots)
+[![](https://img.shields.io/badge/License-MIT-44bb44?style=for-the-badge)](LICENSE)
+
+[![](https://img.shields.io/badge/▶_ชมวิดีโอสาธิต-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/watch?v=_hwR8I9PEMo)
 
 ---
 
-## 📸 Demo
+**[🌐 English Version](./README.md)**
+
+</div>
+
+## 📸 ตัวอย่างระบบ
 
 <div align="center">
-  <img src="Demo/dashboard_demo.png" alt="Dashboard Demo" width="100%">
+  <img src="Demo/dashboard_demo.png" alt="Dashboard Demo" width="100%" style="border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
 </div>
 
 ---
 
-## 📁 โครงสร้างโปรเจค
+## 🌟 วิสัยทัศน์ของโครงการ
 
+แผลกดทับ (Pressure Ulcers) เป็นปัญหาสำคัญในการดูแลผู้ป่วยติดเตียง ซึ่งเกิดจากแรงกดทับเป็นเวลานาน **PressureCare IoT** ถูกพัฒนาขึ้นเพื่อแก้ปัญหานี้ด้วยระบบตรวจจับที่มีความแม่นยำสูง ส่งข้อมูลแบบ Real-time เพื่อให้ผู้ดูแลสามารถตอบสนองได้อย่างทันท่วงที
+
+### 🎯 วัตถุประสงค์
+- **การตรวจจับที่แม่นยำ:** ติดตามแรงกดบนเตียงผู้ป่วยด้วยความละเอียดสูง
+- **การตอบสนองอัจฉริยะ:** แจ้งเตือนผ่าน Telegram อัตโนมัติเมื่อเกิดเหตุการณ์วิกฤต
+- **การวิเคราะห์ข้อมูล:** แสดงผลผ่าน Web Dashboard เพื่อวิเคราะห์แนวโน้มย้อนหลัง
+
+---
+
+## 🚀 คุณสมบัติเด่น
+
+| คุณสมบัติ | รายละเอียด |
+| :--- | :--- |
+| **📊 Real-time Dashboard** | อินเตอร์เฟซแบบ Dark Mode ที่สวยงาม พร้อม Gauge และกราฟที่อัปเดตสดใหม่ |
+| **🚨 การแจ้งเตือนอัจฉริยะ** | แจ้งเตือน 2 รูปแบบ: **แรงกดผิดปกติ** และ **แรงกดค้างนานเกินกำหนด** |
+| **📡 เชื่อมต่อ Cloud** | ซิงค์ข้อมูลกับ Firebase Realtime Database ได้อย่างไร้รอยต่อ |
+| **📶 ระบบ WiFi อัจฉริยะ** | มี WiFiManager ในตัว ตั้งค่า WiFi ได้ง่ายผ่านมือถือโดยไม่ต้องแก้โค้ด |
+| **📈 บันทึกประวัติ** | เก็บประวัติการแจ้งเตือนทั้งหมดเพื่อใช้ในการวินิจฉัยทางการแพทย์ |
+
+---
+
+## 🏗️ สถาปัตยกรรมระบบ
+
+ออกแบบตามโครงสร้าง **IoT 3-Layer Framework** เพื่อความเสถียรและรองรับการขยายตัว
+
+```mermaid
+graph TD
+    subgraph "Perception Layer (ฮาร์ดแวร์)"
+        S[เซ็นเซอร์ RFP-602] -->|สัญญาณ Analog| E[ESP32 DevKit V1]
+        E -->|ไฟแสดงผล| L1[WiFi LED]
+        E -->|ไฟแสดงผล| L2[Press LED]
+    end
+
+    subgraph "Network Layer (คลาวด์)"
+        E -->|HTTPS/WebSocket| F[Firebase RTDB]
+        E -->|HTTPS POST| T[Telegram Bot API]
+    end
+
+    subgraph "Application Layer (ผู้ใช้)"
+        F <-->|Real-time Sync| D[Web Dashboard]
+        T -->|Push Notification| M[มือถือผู้ดูแล]
+    end
+
+    style S fill:#f9f,stroke:#333,stroke-width:2px
+    style E fill:#bbf,stroke:#333,stroke-width:2px
+    style F fill:#f96,stroke:#333,stroke-width:2px
+    style D fill:#9f9,stroke:#333,stroke-width:2px
+    style M fill:#9f9,stroke:#333,stroke-width:2px
 ```
-Pressure_Iot/
-├── 📟 esp32/
-│   ├── esp32_pressure_monitor.ino   # โค้ดหลักสำหรับ ESP32
-│   └── config.h                      # ไฟล์ตั้งค่าทั้งหมด
-├── 🔥 firebase/
-│   ├── database.rules.json           # กฎความปลอดภัย Firebase
-│   └── README.md                     # คู่มือตั้งค่า Firebase
-├── 📊 dashboard/
-│   ├── index.html                    # หน้า Dashboard
-│   ├── css/style.css                 # สไตล์ชีท (ธีมมืด)
-│   └── js/app.js                     # โค้ด JavaScript
-├── 📸 Demo/                          # รูป Demo
-├── 🔌 WIRING_DIAGRAM.md             # แผนผังการต่อสาย
-└── 📖 README.md                      # เอกสาร (English)
-```
+
+### 🛰️ โปรโตคอลที่ใช้
+- **HTTPS:** ส่งข้อมูลไปยัง Firebase และ Telegram อย่างปลอดภัย
+- **WebSocket:** อัปเดตข้อมูลบน Dashboard แบบทันที
+- **UDP (NTP):** ซิงค์เวลาที่แม่นยำระดับมิลลิวินาทีสำหรับการบันทึก Log
 
 ---
 
-## 🔌 1. การต่อสายฮาร์ดแวร์
-
-ดูรายละเอียดเพิ่มเติมที่ **[WIRING_DIAGRAM.md](./WIRING_DIAGRAM.md)**
-
-### ตารางการต่อขาพิน
-
-| ขาพินโมดูล | ขาพิน ESP32 | หน้าที่ |
-|:----------:|:-----------:|---------|
-| VCC | **3V3** | ⚡ จ่ายไฟ (3.3V เท่านั้น!) |
-| GND | **GND** | ⏚ กราวด์ร่วม |
-| AO | **GPIO 34** | 📊 อ่านค่า Analog จาก Sensor |
-| DO | **GPIO 35** | 🔢 Digital Output (สำรอง) |
-
-### 💡 LED เพิ่มเติม
-
-| LED | ขาพิน ESP32 | หน้าที่ |
-|:---:|:-----------:|---------|
-| 🔵 LED สีฟ้า | **GPIO 18** | แสดงสถานะ WiFi (ติด = เชื่อมต่อแล้ว) |
-| 🟡 LED แสดงการกด | **GPIO 19** | แสดงสถานะแรงกด (ติด = มีแรงกด) |
-
-> ⚠️ **สำคัญ:** ใช้ไฟ **3.3V เท่านั้น!** ห้ามต่อ 5V เข้าขา AO เพราะจะทำให้ ESP32 เสียหาย
-
----
-
-## 📟 2. ตั้งค่า ESP32 (Arduino IDE)
-
-### 📥 ติดตั้ง Board Support
-1. เปิด Arduino IDE → **File → Preferences**
-2. เพิ่มลงใน "Additional Board Manager URLs":
-   ```
-   https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
-   ```
-3. **Tools → Board → Boards Manager** → ค้นหา "esp32" → ติดตั้ง
-4. เลือกบอร์ด: **ESP32 Dev Module**
-
-### 📚 ไลบรารีที่ต้องติดตั้ง
-
-| ไลบรารี | ผู้พัฒนา | เวอร์ชัน |
-|---------|---------|:-------:|
-| 🔥 **Firebase ESP32 Client** | Mobizt | 4.x+ |
-| 📋 **ArduinoJson** | Benoit Blanchon | 7.x+ |
-
-### ⚡ โหมด Inverted Logic
-- **ADC ค่าสูง (4095)** = ไม่มีแรงกด
-- **ADC ค่าต่ำ (0)** = กดเต็มกำลัง (5 kg)
-- Threshold ตรวจจับ = ADC < 2000 ถือว่ามีแรงกด
-
----
-
-## 🔥 3. ตั้งค่า Firebase
-
-ดูคู่มือเต็มที่ **[firebase/README.md](./firebase/README.md)** 📖
-
-### ขั้นตอนย่อ:
-1. 🌐 สร้างโปรเจค Firebase ที่ [console.firebase.google.com](https://console.firebase.google.com)
-2. 🗄️ เปิดใช้ **Realtime Database** (เลือก Singapore)
-3. 🔑 เปิดใช้ **Authentication → Email/Password** → สร้าง User
-4. 📋 คัดลอก **API Key** และ **Database URL** ไปใส่ใน `config.h`
-5. 🔒 วาง Rules จากไฟล์ `database.rules.json`
-
----
-
-## 📊 4. เปิด Dashboard
+## 📟 โครงสร้างโปรเจค
 
 ```bash
-# วิธีที่ 1: ดับเบิลคลิกเปิดเลย (ง่ายสุด!)
-เปิดไฟล์ dashboard/index.html ด้วย Browser
-
-# วิธีที่ 2: Local Server
-cd dashboard && npx serve .
+PressureCare_IoT/
+├── 📟 esp32/            # ซอร์สโค้ดสำหรับ ESP32 (Arduino)
+├── 🔥 firebase/         # การตั้งค่าความปลอดภัยและคลาวด์
+├── 📊 dashboard/        # ส่วนแสดงผลบนเว็บ (HTML5/JS)
+├── 📸 Demo/             # รูปภาพและวิดีโอสาธิต
+└── 🔌 WIRING_DIAGRAM.md  # ผังการต่อวงจร
 ```
 
-### ⚙️ ใช้งานครั้งแรก:
-1. คลิกไอคอน ⚙️ ที่มุมขวาบน
-2. ใส่ **Firebase API Key** + **Database URL**
-3. ตั้ง **Device ID** = `esp32_node_01`
-4. กด **Connect** ✅
+---
+
+## ⚡ เริ่มต้นใช้งานอย่างรวดเร็ว
+
+### 1. การเตรียมฮาร์ดแวร์
+ต่อเซ็นเซอร์ **RFP-602** เข้ากับขา **GPIO 34** ผ่านโมดูลแปลงสัญญาณ ตรวจสอบให้แน่ใจว่าใช้ไฟ **3.3V** (ดู [คู่มือการต่อสาย](./WIRING_DIAGRAM.md))
+
+### 2. ตั้งค่า Firebase
+1. สร้างโปรเจคที่ [Firebase Console](https://console.firebase.google.com)
+2. เปิดใช้งาน **Realtime Database** (แนะนำโซน Singapore)
+3. เปิดใช้งาน **Authentication** (แบบ Email/Password)
+4. คัดลอก `API Key` และ `Database URL` มาเตรียมไว้
+
+### 3. ติดตั้งโปรแกรมลง ESP32
+1. เปิดไฟล์ `esp32/esp32_pressure_monitor.ino`
+2. สร้างไฟล์ `config.h` จากไฟล์ตัวอย่างแล้วใส่ค่าที่เตรียมไว้
+3. อัปโหลดโค้ดลงบอร์ด ESP32
+
+### 4. เปิดใช้งาน Dashboard
+เปิดไฟล์ `dashboard/index.html` ด้วยเบราว์เซอร์ และตั้งค่าการเชื่อมต่อผ่านไอคอนฟันเฟือง (⚙️)
 
 ---
 
-## 📲 5. ตั้งค่า Telegram Bot
+## 🔌 ผังการเชื่อมต่อขา (Pin Mapping)
 
-1. 🤖 เปิด Telegram → ค้นหา **@BotFather** → ส่ง `/newbot`
-2. 📋 คัดลอก **Bot Token** → ใส่ `config.h`
-3. 👤 ค้นหา **@userinfobot** → ได้ **Chat ID** → ใส่ `config.h`
+| อุปกรณ์ | ขา ESP32 | หน้าที่ |
+| :--- | :--- | :--- |
+| **เซ็นเซอร์แรงกด (AO)** | **GPIO 34** | อ่านค่า Analog (ADC) |
+| **ไฟสถานะ (สีฟ้า)** | **GPIO 18** | สถานะ WiFi |
+| **ไฟแจ้งเตือน (สีเหลือง)** | **GPIO 19** | เมื่อมีแรงกด |
+| **ปุ่มรีเซ็ต** | **GPIO 0** | กดค้าง 3 วินาทีเพื่อล้างค่า WiFi |
 
-### 🚨 ประเภทการแจ้งเตือน
-
-| การแจ้งเตือน | เงื่อนไข | ข้อความ |
-|:-----------:|---------|---------|
-| 🚨 **แรงกดผิดปกติ** | น้ำหนัก ≥ 4.5 kg | แจ้งเตือนทันที |
-| ⏱️ **กดค้างนาน** | กดค้างเกิน 10 วินาที (Demo) | แจ้งเตือนทุกรอบ |
-| ✅ **เปิดเครื่อง** | ESP32 เริ่มทำงาน | ระบบออนไลน์ |
+> [!CAUTION]
+> ตรวจสอบเสมอว่าเซ็นเซอร์ใช้ไฟ **3.3V** การต่อไฟ 5V เข้าขา Analog ของ ESP32 อาจทำให้บอร์ดเสียหายถาวร
 
 ---
 
-## ⚙️ ค่าที่ปรับได้ (ใน `config.h`)
+## ⚙️ การตั้งค่าระบบ (Thresholds)
 
-| ค่า | ค่าเริ่มต้น | คำอธิบาย |
-|-----|:---------:|---------|
-| `PRESSURE_THRESHOLD_KG` | 0.5 kg | น้ำหนักขั้นต่ำที่ถือว่ามีแรงกด |
-| `CONTINUOUS_PRESSURE_SECONDS` | 10 วินาที (Demo) | เวลากดค้างก่อนแจ้งเตือน |
-| `ABNORMAL_PRESSURE_KG` | 4.5 kg | แจ้งเตือนทันทีถ้าเกินค่านี้ |
-| `ALERT_COOLDOWN_SECONDS` | 15 วินาที (Demo) | ช่วงเวลาขั้นต่ำระหว่างแจ้งเตือน |
-| `ADC_PRESS_THRESHOLD` | 2000 | ADC ต่ำกว่านี้ = มีแรงกด |
-| `MOVING_AVG_SAMPLES` | 20 | จำนวนตัวอย่างสำหรับกรองค่า |
+คุณสามารถปรับแต่งค่าต่างๆ ได้ในไฟล์ `config.h`:
 
-> 💡 **โหมดจริง:** เปลี่ยน `CONTINUOUS_PRESSURE_SECONDS` เป็น `1800` (30 นาที) และ `ALERT_COOLDOWN_SECONDS` เป็น `300` (5 นาที)
+| ตัวแปร | ค่าเริ่มต้น | คำอธิบาย |
+| :--- | :--- | :--- |
+| `PRESSURE_THRESHOLD_KG` | 0.5 kg | ความไวในการตรวจจับ |
+| `CONTINUOUS_SECONDS` | 10 s | เวลากดค้างก่อนแจ้งเตือน (โหมดสาธิต) |
+| `ABNORMAL_KG` | 4.5 kg | แจ้งเตือนทันทีเมื่อแรงกดสูงเกินไป |
+| `DATA_INTERVAL` | 2000 ms | ความถี่ในการส่งข้อมูลขึ้นคลาวด์ |
 
 ---
 
-## 🔒 หมายเหตุความปลอดภัย
+## 📚 เทคโนโลยีและความปลอดภัย
 
-- 🔐 Firebase ต้องยืนยันตัวตนก่อนเขียนข้อมูล
-- 👁️ Dashboard อ่านข้อมูลได้โดยไม่ต้อง Login
-- 🤖 เก็บ Telegram Token ให้เป็นความลับ
+- **Firmware:** Arduino Core for ESP32, WiFiManager, ArduinoJson
+- **Backend:** Firebase Authentication & Realtime Database
+- **Frontend:** Chart.js, Vanilla JS (ES6+), Glassmorphism CSS
+- **Security:** การเขียนข้อมูลแบบระบุตัวตน, กฎฐานข้อมูลที่เข้มงวด, รับส่งข้อมูลผ่าน HTTPS
 
 ---
 
 <div align="center">
 
-⭐ **ถ้าโปรเจคนี้มีประโยชน์ อย่าลืมกด Star!** ⭐
+**วิศวกรรมเพื่อประสบการณ์การดูแลสุขภาพที่ปลอดภัยยิ่งขึ้น**
+
+สร้างด้วย ❤️ เพื่อการดูแลผู้ป่วย
 
 </div>
