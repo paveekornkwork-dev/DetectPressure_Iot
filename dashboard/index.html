@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pressure Monitoring System — Dashboard</title>
+  <meta name="description"
+    content="Real-time pressure monitoring dashboard for patient bedsore prevention. View live sensor data, connection status, and alert history." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script
+    src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+  <!-- Firebase SDK (Compat for simplicity) -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+  <!-- ============================== Header ============================== -->
+  <header class="header" id="header">
+    <div class="header__brand">
+      <div class="header__logo">
+        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="18" stroke="url(#grad)" stroke-width="3" fill="none" />
+          <path d="M20 10 L20 30 M14 16 L20 10 L26 16" stroke="url(#grad)" stroke-width="2.5" stroke-linecap="round"
+            stroke-linejoin="round" />
+          <defs>
+            <linearGradient id="grad" x1="0" y1="0" x2="40" y2="40">
+              <stop offset="0%" stop-color="#00d2ff" />
+              <stop offset="100%" stop-color="#7a5cff" />
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <div>
+        <h1 class="header__title">Pressure Monitor</h1>
+        <p class="header__subtitle">Real-time Patient Safety System</p>
+      </div>
+    </div>
+    <div class="header__actions">
+      <div class="header__clock" id="headerClock">--:--:--</div>
+      <button class="btn btn--wifi-guide" id="btnWifiGuide" title="วิธีเชื่อมต่อ Wi-Fi">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12.55a11 11 0 0 1 14.08 0" />
+          <path d="M1.42 9a16 16 0 0 1 21.16 0" />
+          <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
+          <line x1="12" y1="20" x2="12.01" y2="20" />
+        </svg>
+        <span>วิธีเชื่อมต่อ Wi-Fi</span>
+      </button>
+      <button class="btn btn--icon" id="btnSettings" title="Settings">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3" />
+          <path
+            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ============================ Main Grid ============================ -->
+  <main class="dashboard" id="dashboard">
+
+    <!-- ---- Status Card ---- -->
+    <section class="card card--status" id="statusCard">
+      <div class="card__header">
+        <h2 class="card__title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+          </svg>
+          Device Status
+        </h2>
+        <span class="status-badge status-badge--offline" id="statusBadge">
+          <span class="status-badge__dot"></span>
+          <span id="statusText">Offline</span>
+        </span>
+      </div>
+      <div class="status-grid">
+        <div class="status-item">
+          <span class="status-item__label">Device ID</span>
+          <span class="status-item__value" id="deviceId">—</span>
+        </div>
+        <div class="status-item">
+          <span class="status-item__label">Location</span>
+          <span class="status-item__value" id="deviceLocation">—</span>
+        </div>
+        <div class="status-item">
+          <span class="status-item__label">IP Address</span>
+          <span class="status-item__value" id="deviceIp">—</span>
+        </div>
+        <div class="status-item">
+          <span class="status-item__label">WiFi Signal</span>
+          <span class="status-item__value" id="deviceRssi">—</span>
+        </div>
+        <div class="status-item">
+          <span class="status-item__label">Uptime</span>
+          <span class="status-item__value" id="deviceUptime">—</span>
+        </div>
+        <div class="status-item">
+          <span class="status-item__label">Last Seen</span>
+          <span class="status-item__value" id="deviceLastSeen">—</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---- Live Pressure Gauge ---- -->
+    <section class="card card--gauge" id="gaugeCard">
+      <div class="card__header">
+        <h2 class="card__title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 6v6l4 2" />
+          </svg>
+          Current Pressure
+        </h2>
+      </div>
+      <div class="gauge" id="gaugeContainer">
+        <div class="gauge__ring">
+          <svg viewBox="0 0 200 200" class="gauge__svg">
+            <circle cx="100" cy="100" r="85" class="gauge__track" />
+            <circle cx="100" cy="100" r="85" class="gauge__fill" id="gaugeFill" />
+          </svg>
+          <div class="gauge__value-wrap">
+            <span class="gauge__value" id="gaugeValue">0.00</span>
+            <span class="gauge__unit">kg</span>
+          </div>
+        </div>
+        <div class="gauge__meta">
+          <div class="gauge__meta-item">
+            <span class="gauge__meta-label">Pressure</span>
+            <span class="gauge__meta-value" id="gaugePressure">0.0 kPa</span>
+          </div>
+          <div class="gauge__meta-item">
+            <span class="gauge__meta-label">ADC Raw</span>
+            <span class="gauge__meta-value" id="gaugeAdc">0</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---- Real-time Chart ---- -->
+    <section class="card card--chart" id="chartCard">
+      <div class="card__header">
+        <h2 class="card__title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+          </svg>
+          Pressure Timeline
+        </h2>
+        <div class="chart-controls">
+          <button class="btn btn--sm btn--active" data-range="60" id="btnRange60">1 min</button>
+          <button class="btn btn--sm" data-range="300" id="btnRange300">5 min</button>
+          <button class="btn btn--sm" data-range="1800" id="btnRange1800">30 min</button>
+          <button class="btn btn--sm" data-range="3600" id="btnRange3600">1 hr</button>
+        </div>
+      </div>
+      <div class="chart-container">
+        <canvas id="pressureChart"></canvas>
+      </div>
+    </section>
+
+    <!-- ---- Alert History ---- -->
+    <section class="card card--alerts" id="alertsCard">
+      <div class="card__header">
+        <h2 class="card__title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+            <line x1="12" y1="9" x2="12" y2="13" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+          Alert History
+        </h2>
+        <span class="badge" id="alertCount">0</span>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table" id="alertTable">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Type</th>
+              <th>Weight (kg)</th>
+              <th>Pressure (kPa)</th>
+              <th>Location</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="alertTableBody">
+            <tr class="data-table__empty">
+              <td colspan="6">No alerts recorded yet</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============================= Settings Modal ======================== -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal">
+      <div class="modal__header">
+        <h2>⚙️ Firebase Configuration</h2>
+        <button class="btn btn--icon modal__close" id="btnCloseSettings">&times;</button>
+      </div>
+      <div class="modal__body">
+        <p class="modal__hint">Enter your Firebase project details to connect the dashboard.</p>
+        <div class="form-group">
+          <label for="inputApiKey">API Key</label>
+          <input type="text" id="inputApiKey" placeholder="AIzaSy..." />
+        </div>
+        <div class="form-group">
+          <label for="inputDbUrl">Database URL</label>
+          <input type="text" id="inputDbUrl" placeholder="https://your-project.firebaseio.com" />
+        </div>
+        <div class="form-group">
+          <label for="inputDeviceId">Device ID</label>
+          <input type="text" id="inputDeviceId" placeholder="esp32_node_01" value="esp32_node_01" />
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--secondary" id="btnCancelSettings">Cancel</button>
+        <button class="btn btn--primary" id="btnSaveSettings">Connect</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================= WiFi Guide Modal ==================== -->
+  <div class="modal-overlay" id="wifiGuideModal">
+    <div class="modal modal--wide">
+      <div class="modal__header modal__header--wifi">
+        <div class="modal__header-content">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12.55a11 11 0 0 1 14.08 0" />
+            <path d="M1.42 9a16 16 0 0 1 21.16 0" />
+            <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
+            <line x1="12" y1="20" x2="12.01" y2="20" />
+          </svg>
+          <h2>วิธีตั้งค่าอุปกรณ์ Pressure Sensor</h2>
+        </div>
+        <button class="btn btn--icon modal__close" id="btnCloseWifiGuide">&times;</button>
+      </div>
+
+      <div class="modal__body modal__body--guide">
+        <!-- Steps -->
+        <div class="guide-steps">
+
+          <div class="guide-step">
+            <div class="guide-step__num">1</div>
+            <div class="guide-step__body">
+              <h3 class="guide-step__title">เปิดเครื่อง</h3>
+              <p class="guide-step__desc">เสียบปลั๊ก และ ทำการกดสวิตช์</p>
+              <div class="guide-step__tip">💡 LED สีเขียวจะสว่าง แสดงว่าอุปกรณ์พร้อมทำงาน</div>
+            </div>
+          </div>
+
+          <div class="guide-step">
+            <div class="guide-step__num">2</div>
+            <div class="guide-step__body">
+              <h3 class="guide-step__title">หากไม่มีรหัส Wi-Fi บันทึกอยู่ — บอร์ดจะปล่อยสัญญาณ Wi-Fi ออกมา</h3>
+              <p class="guide-step__desc">หยิบมือถือขึ้นมาเปิดหน้า <strong>ตั้งค่า Wi-Fi</strong>
+                แล้วค้นหาสัญญาณที่ชื่อ:</p>
+              <div class="guide-step__ssid">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M5 12.55a11 11 0 0 1 14.08 0" />
+                  <path d="M1.42 9a16 16 0 0 1 21.16 0" />
+                  <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
+                  <line x1="12" y1="20" x2="12.01" y2="20" />
+                </svg>
+                <span>PressureSensor_Setup</span>
+              </div>
+              <p class="guide-step__desc">รหัสผ่าน: <code class="guide-code">12345678</code></p>
+            </div>
+          </div>
+
+          <div class="guide-step">
+            <div class="guide-step__num">3</div>
+            <div class="guide-step__body">
+              <h3 class="guide-step__title">หน้าเว็บตั้งค่าจะเด้งขึ้นมาอัตโนมัติ</h3>
+              <p class="guide-step__desc">หลังจากเชื่อมต่อกับ <strong>PressureSensor_Setup</strong> แล้ว
+                หน้าเว็บตั้งค่าจะเปิดขึ้นเองทันที (เหมือน Wi-Fi โรงแรม) หากไม่เด้ง ให้เปิดเบราว์เซอร์แล้วพิมพ์ <code
+                  class="guide-code">192.168.4.1</code></p>
+            </div>
+          </div>
+
+          <div class="guide-step">
+            <div class="guide-step__num">4</div>
+            <div class="guide-step__body">
+              <h3 class="guide-step__title">เลือก Wi-Fi แล้วกรอกรหัสผ่าน</h3>
+              <p class="guide-step__desc">กดปุ่ม <strong>"Configure WiFi"</strong> → เลือกชื่อ Wi-Fi ของคุณจากรายการ →
+                กรอกรหัสผ่าน → กด <strong>Save</strong></p>
+              <div class="guide-step__tip">💡 LED สีฟ้าจะสว่างและอุปกรณ์จะจำรหัสผ่านนี้ไว้ในชิป
+                ไม่ต้องตั้งค่าใหม่ทุกครั้ง</div>
+            </div>
+          </div>
+
+          <div class="guide-step">
+            <div class="guide-step__num">5</div>
+            <div class="guide-step__body">
+              <h3 class="guide-step__title">บอร์ดรีสตาร์ทและเชื่อมต่อ Wi-Fi ใหม่</h3>
+              <p class="guide-step__desc">ESP32 จะ Restart ตัวเองอัตโนมัติ เชื่อมต่อ Wi-Fi ที่กำหนด แล้วส่งข้อมูลเข้า
+                Firebase ได้ทันที หน้า Dashboard นี้จะแสดงสถานะ <span class="badge-online">Online</span> ภายใน 30 วินาที
+              </p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Reset Section -->
+        <div class="guide-reset">
+          <div class="guide-reset__icon">🔄</div>
+          <div>
+            <p class="guide-reset__title">หากต้องการเปลี่ยน Wi-Fi ใหม่?</p>
+            <p class="guide-reset__desc">ให้เปิดกล้องและกดปุ่ม <strong>BOOT</strong> (ปุ่มบนบอร์ด ESP32 ฝั่งซ้ายมือ
+              ใกล้พอร์ต USB)
+              ค้างไว้ <strong>3 วินาที</strong> บอร์ดจะลืมรหัส Wi-Fi เก่า
+              แล้วกลับไปทำซ้ำตั้งแต่ข้อ 2</p>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal__footer">
+        <button class="btn btn--primary" id="btnCloseWifiGuideOk">เข้าใจแล้ว ✓</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================= App JS ============================== -->
+  <script src="js/app.js"></script>
+  <script>
+    // WiFi Guide Modal Logic
+    const wifiGuideModal = document.getElementById('wifiGuideModal');
+    document.getElementById('btnWifiGuide').addEventListener('click', () => {
+      wifiGuideModal.classList.add('modal-overlay--active');
+    });
+    document.getElementById('btnCloseWifiGuide').addEventListener('click', () => {
+      wifiGuideModal.classList.remove('modal-overlay--active');
+    });
+    document.getElementById('btnCloseWifiGuideOk').addEventListener('click', () => {
+      wifiGuideModal.classList.remove('modal-overlay--active');
+    });
+    wifiGuideModal.addEventListener('click', (e) => {
+      if (e.target === wifiGuideModal) wifiGuideModal.classList.remove('modal-overlay--active');
+    });
+  </script>
+</body>
+
+</html>
