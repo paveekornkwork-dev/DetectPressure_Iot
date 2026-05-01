@@ -14,7 +14,7 @@
 
 ---
 
-**[🌐 ภาษาไทย (Thai Version)](./README.th.md)**
+
 
 </div>
 
