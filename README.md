@@ -10,7 +10,7 @@
 [![](https://img.shields.io/badge/Telegram-Smart_Alerts-26A5E4?style=for-the-badge&logo=telegram&logoColor=white)](https://core.telegram.org/bots)
 [![](https://img.shields.io/badge/License-MIT-44bb44?style=for-the-badge)](LICENSE)
 
-[![](https://img.shields.io/badge/▶_WATCH_DEMO_VIDEO-FF0000?style=for-the-badge&logo=youtube&logoColor=white)]([https://www.youtube.com/watch?v=_hwR8I9PEMo](https://www.youtube.com/watch?v=9-h01AvK90g)
+[![](https://img.shields.io/badge/▶_WATCH_DEMO_VIDEO-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/watch?v=9-h01AvK90g)
 
 ---
 
